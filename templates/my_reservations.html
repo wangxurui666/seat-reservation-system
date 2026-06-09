@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}我的预约 — 自习室座位预约系统{% endblock %}
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>我的预约记录</h1>
+    </div>
+
+    {% if reservations %}
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>时段</th>
+                    <th>座位</th>
+                    <th>自习室</th>
+                    <th>楼栋</th>
+                    <th>状态</th>
+                    <th>预约时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reservations %}
+                <tr class="row-status-{{ r.status }}">
+                    <td>{{ r.reserve_date }}</td>
+                    <td>{{ r.slot_name }}</td>
+                    <td><strong>{{ r.seat_label }}</strong></td>
+                    <td>{{ r.room_name }}</td>
+                    <td>{{ r.building_name }}</td>
+                    <td>
+                        <span class="status-badge status-{{ r.status }}">{{ r.status_text }}</span>
+                    </td>
+                    <td>{{ r.created_at.strftime('%m-%d %H:%M') if r.created_at else '-' }}</td>
+                    <td class="action-cell">
+                        {% if r.status == 'reserved' %}
+                        <form method="POST" action="{{ url_for('seat.checkin', reservation_id=r.id) }}" style="display:inline">
+                            <button type="submit" class="btn btn-sm btn-success">签到</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('seat.cancel', reservation_id=r.id) }}" style="display:inline"
+                              onsubmit="return confirm('确定取消该预约吗？')">
+                            <button type="submit" class="btn btn-sm btn-danger">取消</button>
+                        </form>
+                        {% elif r.status == 'checked_in' %}
+                        <span class="text-muted">已签到 {{ r.checked_in_at.strftime('%H:%M') if r.checked_in_at else '' }}</span>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">&#x1F4C5;</div>
+        <p>暂无预约记录</p>
+        <a href="{{ url_for('seat.index') }}" class="btn btn-accent">去预约座位</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

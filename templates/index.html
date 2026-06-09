@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}座位地图 — 自习室座位预约系统{% endblock %}
+{% block content %}
+<div class="seat-map-page">
+    <!-- Filters -->
+    <div class="filter-bar">
+        <form method="GET" class="filter-form">
+            <div class="filter-group">
+                <label for="date">日期</label>
+                <input type="date" id="date" name="date" value="{{ selected_date }}">
+            </div>
+            <div class="filter-group">
+                <label for="slot_id">时段</label>
+                <select id="slot_id" name="slot_id">
+                    {% for ts in time_slots %}
+                    <option value="{{ ts.id }}" {% if ts.id == slot_id %}selected{% endif %}>
+                        {{ ts.slot_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-accent">查看</button>
+        </form>
+        {% if selected_slot %}
+        <div class="filter-info">
+            当前查看：<strong>{{ selected_date }}</strong> &nbsp;|&nbsp; <strong>{{ selected_slot.slot_name }}</strong>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+        <span class="legend-item"><span class="legend-dot free"></span> 可预约</span>
+        <span class="legend-item"><span class="legend-dot occupied"></span> 已占用</span>
+        <span class="legend-item"><span class="legend-dot maintenance"></span> 维护中</span>
+        <span class="legend-item"><span class="legend-dot has-power"></span> 有电源</span>
+        <span class="legend-item"><span class="legend-dot near-window"></span> 靠窗</span>
+    </div>
+
+    <!-- Room Cards -->
+    <div class="rooms-grid">
+        {% for room in rooms %}
+        <div class="room-card">
+            <div class="room-card-header">
+                <div>
+                    <h3>{{ room.name }}</h3>
+                    <span class="room-meta">{{ room.building_name }} · {{ room.floor }}楼 · {{ room.capacity }}座</span>
+                </div>
+                <span class="room-usage">
+                    {{ room.seats | selectattr('avail', 'equalto', 'occupied') | list | length }}/{{ room.capacity }}
+                </span>
+            </div>
+            <div class="seat-grid">
+                {% for seat in room.seats %}
+                <div class="seat-item
+                    {% if seat.status == 'maintenance' %}seat-maintenance
+                    {% elif seat.avail == 'occupied' %}seat-occupied
+                    {% else %}seat-free
+                    {% endif %}
+                    {% if seat.near_window %}seat-window{% endif %}"
+                    title="
+                    {{ seat.seat_label }}
+                    {% if seat.has_power %}· 电源{% endif %}
+                    {% if seat.near_window %}· 靠窗{% endif %}
+                    {% if seat.status == 'maintenance' %}· 维护中{% endif %}
+                    {% if seat.avail == 'occupied' %}· 已占用{% endif %}
+                    ">
+                    {% if seat.status == 'maintenance' %}
+                        <span class="seat-label">{{ seat.seat_label }}</span>
+                        <span class="seat-icon">&#x1F6A7;</span>
+                    {% elif seat.avail == 'occupied' %}
+                        <span class="seat-label">{{ seat.seat_label }}</span>
+                        <span class="seat-icon">&#x1F6AB;</span>
+                    {% else %}
+                        <span class="seat-label">{{ seat.seat_label }}</span>
+                        <span class="seat-icons">
+                            {% if seat.has_power %}<span class="icon-power">&#x26A1;</span>{% endif %}
+                            {% if seat.near_window %}<span class="icon-window">&#x1FAA8;</span>{% endif %}
+                        </span>
+                        <form method="POST" action="{{ url_for('seat.reserve') }}" class="seat-reserve-form">
+                            <input type="hidden" name="seat_id" value="{{ seat.id }}">
+                            <input type="hidden" name="date" value="{{ selected_date }}">
+                            <input type="hidden" name="time_slot_id" value="{{ slot_id }}">
+                            <button type="submit" class="btn-reserve">预约</button>
+                        </form>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
