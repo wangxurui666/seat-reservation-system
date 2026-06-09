@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}管理后台 — 自习室座位预约系统{% endblock %}
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>管理后台</h1>
+    </div>
+
+    <div class="admin-grid">
+        <!-- Left: Room & Seat Management -->
+        <div class="admin-section">
+            <h2>自习室与座位管理</h2>
+
+            {% for room in rooms %}
+            <div class="admin-room-card">
+                <div class="admin-room-header">
+                    <strong>{{ room.name }}</strong>
+                    <span>{{ room.building_name }} · {{ room.floor }}楼 · {{ room.capacity }}座</span>
+                </div>
+                <div class="admin-seat-list">
+                    {% set room_seats = [] %}
+                    {# We need to query seats separately for each room #}
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="admin-action-card">
+                <h3>添加座位</h3>
+                <form method="POST" action="{{ url_for('add_seat') }}" class="inline-form">
+                    <select name="room_id" required>
+                        <option value="">选择自习室</option>
+                        {% for room in rooms %}
+                        <option value="{{ room.id }}">{{ room.name }} ({{ room.building_name }})</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" name="seat_label" placeholder="座位号（如 A-11）" required>
+                    <label class="checkbox-label"><input type="checkbox" name="has_power"> 电源</label>
+                    <label class="checkbox-label"><input type="checkbox" name="near_window"> 靠窗</label>
+                    <button type="submit" class="btn btn-accent btn-sm">添加</button>
+                </form>
+            </div>
+
+            <div class="admin-action-card">
+                <h3>添加自习室</h3>
+                <form method="POST" action="{{ url_for('add_room') }}" class="inline-form">
+                    <select name="building_id" required>
+                        <option value="">选择楼栋</option>
+                        {% for b in buildings %}
+                        <option value="{{ b.id }}">{{ b.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" name="name" placeholder="自习室名称" required>
+                    <input type="number" name="floor" placeholder="楼层" value="1" style="width:70px">
+                    <input type="number" name="capacity" placeholder="座位数" value="30" style="width:80px">
+                    <input type="text" name="description" placeholder="描述（可选）" style="width:200px">
+                    <button type="submit" class="btn btn-accent btn-sm">添加</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right: Violations -->
+        <div class="admin-section">
+            <h2>违约记录</h2>
+            {% if violations %}
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>学生</th>
+                            <th>学号</th>
+                            <th>原因</th>
+                            <th>扣分</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for v in violations %}
+                        <tr>
+                            <td>{{ v.created_at.strftime('%m-%d %H:%M') if v.created_at else '-' }}</td>
+                            <td>{{ v.real_name }}</td>
+                            <td>{{ v.student_id }}</td>
+                            <td>{{ v.reason }}</td>
+                            <td><span class="text-danger">-{{ v.points_deducted }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>暂无违约记录</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}数据统计 — 自习室座位预约系统{% endblock %}
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>数据统计面板</h1>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="stats-summary">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_users }}</div>
+            <div class="stat-label">注册学生</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_seats }}</div>
+            <div class="stat-label">可用座位</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ today_reservations }}</div>
+            <div class="stat-label">今日预约</div>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <!-- Slot Usage -->
+        <div class="stats-panel">
+            <h2>各时段利用率（近30天）</h2>
+            {% if slot_stats %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>时段</th>
+                        <th>预约总数</th>
+                        <th>实际使用</th>
+                        <th>利用率</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in slot_stats %}
+                    <tr>
+                        <td>{{ s.slot_name }}</td>
+                        <td>{{ s.total_reservations }}</td>
+                        <td>{{ s.actual_usage }}</td>
+                        <td>
+                            <div class="usage-bar">
+                                <div class="usage-fill" style="width:{{ s.usage_rate or 0 }}%"></div>
+                                <span>{{ s.usage_rate or 0 }}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state"><p>暂无数据</p></div>
+            {% endif %}
+        </div>
+
+        <!-- Hot Seats -->
+        <div class="stats-panel">
+            <h2>热门座位 Top 20</h2>
+            {% if seat_popularity %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>座位</th>
+                        <th>自习室</th>
+                        <th>楼栋</th>
+                        <th>预约次数</th>
+                        <th>缺席</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in seat_popularity %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ s.seat_label }}</strong></td>
+                        <td>{{ s.room_name }}</td>
+                        <td>{{ s.building_name }}</td>
+                        <td>{{ s.reserve_count }}</td>
+                        <td>{{ s.absent_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state"><p>暂无数据</p></div>
+            {% endif %}
+        </div>
+
+        <!-- Credit Ranking -->
+        <div class="stats-panel stats-panel-full">
+            <h2>学生信用排行</h2>
+            {% if credit_ranking %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>排名</th>
+                        <th>姓名</th>
+                        <th>学号</th>
+                        <th>信用分</th>
+                        <th>总预约</th>
+                        <th>缺席次数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in credit_ranking %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ u.real_name }}</td>
+                        <td>{{ u.student_id }}</td>
+                        <td>
+                            <span class="credit-score {% if u.credit >= 90 %}credit-good{% elif u.credit >= 60 %}credit-warn{% else %}credit-bad{% endif %}">
+                                {{ u.credit }}
+                            </span>
+                        </td>
+                        <td>{{ u.total_reservations }}</td>
+                        <td>{{ u.absent_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state"><p>暂无数据</p></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
